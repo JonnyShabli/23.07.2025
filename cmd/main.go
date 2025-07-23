@@ -2,8 +2,10 @@ package main
 
 import (
 	"flag"
+	"os"
 
 	"github.com/JonnyShabli/23.07.2025/config"
+	"github.com/JonnyShabli/23.07.2025/pkg/logster"
 	"github.com/joho/godotenv"
 )
 
@@ -25,4 +27,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	// Создаем логер
+	logger := logster.New(os.Stdout, appConfig.Logger)
+	defer func() { _ = logger.Sync() }()
 }

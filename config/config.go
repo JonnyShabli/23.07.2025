@@ -4,11 +4,13 @@ import (
 	"os"
 	"time"
 
+	"github.com/JonnyShabli/23.07.2025/pkg/logster"
 	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
 	HTTPClient `yaml:"httpClient"`
+	Logger     logster.Config `yaml:"logger"`
 }
 
 type HTTPClient struct {
