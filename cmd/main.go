@@ -1,12 +1,17 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"flag"
 	"os"
+	"time"
 
 	"github.com/JonnyShabli/23.07.2025/config"
+	sig "github.com/JonnyShabli/23.07.2025/pkg"
 	"github.com/JonnyShabli/23.07.2025/pkg/logster"
 	"github.com/joho/godotenv"
+	"golang.org/x/sync/errgroup"
 )
 
 const localConfig = "config/local/config_local.yaml"
@@ -31,4 +36,21 @@ func main() {
 	// Создаем логер
 	logger := logster.New(os.Stdout, appConfig.Logger)
 	defer func() { _ = logger.Sync() }()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// создаем errgroup
+	g, ctx := errgroup.WithContext(ctx)
+
+	// Gracefully shutdown
+	g.Go(func() error {
+		return sig.ListenSignal(ctx, logger)
+	})
+
+	// ждем завершения
+	err = g.Wait()
+	if err != nil && !errors.Is(err, sig.ErrSignalReceived) {
+		logger.WithError(err).Errorf("Exit reason")
+	}
 }
