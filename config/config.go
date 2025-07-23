@@ -2,21 +2,15 @@ package config
 
 import (
 	"os"
-	"time"
 
+	pkghttp "github.com/JonnyShabli/23.07.2025/pkg/http"
 	"github.com/JonnyShabli/23.07.2025/pkg/logster"
 	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
-	HTTPClient `yaml:"httpClient"`
-	Logger     logster.Config `yaml:"logger"`
-}
-
-type HTTPClient struct {
-	Timeout time.Duration `yaml:"timeout"`
-	Addr    string        `yaml:"Addr"`
-	Port    string        `yaml:"Port"`
+	pkghttp.HTTPClient `yaml:"httpClient"`
+	Logger             logster.Config `yaml:"logger"`
 }
 
 func LoadConfig(filename string, cfg interface{}) error {
