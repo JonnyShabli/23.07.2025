@@ -47,7 +47,7 @@ func main() {
 
 	// создаем хэндлер
 	handler := pkghttp.NewHandler("/", pkghttp.WithLogger(logger), pkghttp.DefaultTechOptions())
-	logger.Infof("create and configure handler %+v", handler)
+	logger.Infof("create and configure handler")
 
 	// запускаем http server
 	g.Go(func() error {

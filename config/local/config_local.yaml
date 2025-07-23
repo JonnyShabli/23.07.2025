@@ -5,6 +5,7 @@ httpClient:
 
 logger:
   project: "23.07.2025"
-  format: "text"
+  format: "console"
   level: "info"
+
 

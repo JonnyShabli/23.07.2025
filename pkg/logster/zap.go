@@ -67,17 +67,25 @@ func New(w zapcore.WriteSyncer, cfg Config) *ZapAdapter {
 	}
 
 	fields := []zap.Field{
-		zap.String("go_project", cfg.Project),
+		zap.String("project", cfg.Project),
 	}
 
 	var encoderCfg zapcore.EncoderConfig
 	var enc zapcore.Encoder
 
 	encoderCfg = zap.NewProductionEncoderConfig()
+	encoderCfg.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	encoderCfg.EncodeTime = func(time time.Time, enc zapcore.PrimitiveArrayEncoder) {
 		enc.AppendString(time.UTC().Format("2006-01-02T15:04:05.999Z07:00"))
 	}
-	enc = zapcore.NewJSONEncoder(encoderCfg)
+	switch cfg.Format {
+	case "json":
+		enc = zapcore.NewJSONEncoder(encoderCfg)
+	case "console":
+		enc = zapcore.NewConsoleEncoder(encoderCfg)
+	default:
+		enc = zapcore.NewConsoleEncoder(encoderCfg)
+	}
 
 	options := []zap.Option{
 		zap.Fields(fields...),

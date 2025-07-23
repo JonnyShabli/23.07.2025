@@ -3,6 +3,7 @@ package logster
 type Config struct {
 	Project string `yaml:"project"`
 	Level   string `yaml:"level"`
+	Format  string `yaml:"format"`
 }
 
 type Logger interface {
