@@ -9,6 +9,7 @@ import (
 
 	"github.com/JonnyShabli/23.07.2025/config"
 	sig "github.com/JonnyShabli/23.07.2025/pkg"
+	pkghttp "github.com/JonnyShabli/23.07.2025/pkg/http"
 	"github.com/JonnyShabli/23.07.2025/pkg/logster"
 	"github.com/joho/godotenv"
 	"golang.org/x/sync/errgroup"
@@ -47,6 +48,10 @@ func main() {
 	g.Go(func() error {
 		return sig.ListenSignal(ctx, logger)
 	})
+
+	// создаем хэндлер
+	handler := pkghttp.NewHandler("/", pkghttp.WithLogger(logger), pkghttp.DefaultTechOptions())
+	logger.Infof("create and configure handler %+v", handler)
 
 	// ждем завершения
 	err = g.Wait()
