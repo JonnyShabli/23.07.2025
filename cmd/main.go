@@ -5,7 +5,6 @@ import (
 	"errors"
 	"flag"
 	"os"
-	"time"
 
 	"github.com/JonnyShabli/23.07.2025/config"
 	sig "github.com/JonnyShabli/23.07.2025/pkg"
@@ -38,11 +37,8 @@ func main() {
 	logger := logster.New(os.Stdout, appConfig.Logger)
 	defer func() { _ = logger.Sync() }()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
 	// создаем errgroup
-	g, ctx := errgroup.WithContext(ctx)
+	g, ctx := errgroup.WithContext(context.Background())
 
 	// Gracefully shutdown
 	g.Go(func() error {
@@ -52,6 +48,14 @@ func main() {
 	// создаем хэндлер
 	handler := pkghttp.NewHandler("/", pkghttp.WithLogger(logger), pkghttp.DefaultTechOptions())
 	logger.Infof("create and configure handler %+v", handler)
+
+	// запускаем http server
+	g.Go(func() error {
+		return logster.LogIfError(
+			logger, pkghttp.RunServer(ctx, appConfig.Addr+":"+appConfig.Port, logger, handler),
+			"Api server",
+		)
+	})
 
 	// ждем завершения
 	err = g.Wait()

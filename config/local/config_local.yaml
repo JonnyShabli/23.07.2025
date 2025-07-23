@@ -2,3 +2,9 @@ httpClient:
   timeout: 1s
   addr: "localhost"
   port: "8080"
+
+logger:
+  project: "23.07.2025"
+  format: "text"
+  level: "info"
+

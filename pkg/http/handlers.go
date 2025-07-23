@@ -18,8 +18,8 @@ const (
 
 type HTTPClient struct {
 	Timeout time.Duration `yaml:"timeout"`
-	Addr    string        `yaml:"Addr"`
-	Port    string        `yaml:"Port"`
+	Addr    string        `yaml:"addr"`
+	Port    string        `yaml:"port"`
 }
 
 func NewHandler(basePath string, opts ...RouterOption) http.Handler {
