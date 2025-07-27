@@ -12,12 +12,12 @@ import (
 
 type StorageInterface interface {
 	AddTask(ctx context.Context) (uuid.UUID, error)
-	GetTask(ctx context.Context) (*models.Task, error)
-	AddLinks(ctx context.Context, id uuid.UUID) error
+	GetTask(ctx context.Context, id string) (*models.Task, error)
+	AddLinks(ctx context.Context, links []string, id string) (int, error)
 }
 type Storage struct {
 	mu     sync.RWMutex
-	db     map[string]models.Task
+	db     sync.Map
 	logger logster.Logger
 }
 
@@ -28,8 +28,8 @@ type valueErr struct {
 
 func NewStorage(logger logster.Logger) *Storage {
 	return &Storage{
-		db:     make(map[string]models.Task),
-		logger: logger.WithPrefix("db_"),
+		db:     sync.Map{},
+		logger: logger.WithField("Layer", "Repository"),
 	}
 }
 
@@ -45,14 +45,13 @@ func (s *Storage) AddTask(ctx context.Context) (uuid.UUID, error) {
 	defer close(doneCh)
 	go func() {
 		task := models.Task{
-			TaskId: uuid.New(),
-			Links:  make([]string, 0, 3),
-			Count:  0,
-			Status: models.StatusIdle,
+			TaskId:     uuid.New(),
+			Links:      make([]string, 0, 3),
+			LinksDone:  make([]string, 0, 3),
+			LinksError: make([]string, 0),
+			Status:     models.StatusIdle,
 		}
-		s.mu.Lock()
-		s.db[task.TaskId.String()] = task
-		s.mu.Unlock()
+		s.db.Store(task.TaskId.String(), task)
 
 		doneCh <- task.TaskId
 	}()
@@ -67,7 +66,7 @@ func (s *Storage) AddTask(ctx context.Context) (uuid.UUID, error) {
 	}
 }
 
-func (s *Storage) GetTask(ctx context.Context, id uuid.UUID) (*models.Task, error) {
+func (s *Storage) GetTask(ctx context.Context, id string) (*models.Task, error) {
 	select {
 	default:
 	case <-ctx.Done():
@@ -78,9 +77,7 @@ func (s *Storage) GetTask(ctx context.Context, id uuid.UUID) (*models.Task, erro
 	doneCh := make(chan valueErr)
 
 	go func() {
-		s.mu.RLock()
-		task, ok := s.db[id.String()]
-		s.mu.RUnlock()
+		task, ok := s.db.Load(id)
 		if !ok {
 			err := errors.New("task not found")
 			s.logger.WithError(err).Errorf("GetTask: task not found")
@@ -88,7 +85,7 @@ func (s *Storage) GetTask(ctx context.Context, id uuid.UUID) (*models.Task, erro
 			return
 		}
 
-		s.logger.Infof("GetTask: task found with Id: %v", task.TaskId)
+		s.logger.Infof("GetTask: task found with Id: %v", task.(models.Task).TaskId)
 		doneCh <- valueErr{v: task, err: nil}
 	}()
 
@@ -106,12 +103,14 @@ func (s *Storage) GetTask(ctx context.Context, id uuid.UUID) (*models.Task, erro
 			s.logger.WithError(err).Errorf("GetTask: task not found")
 			return nil, errors.New("task not found")
 		}
-		s.logger.Infof("GetTask: task found, returning")
-		return result.v.(*models.Task), nil
+
+		s.logger.Infof("GetTask: task found, returning", result)
+		task := result.v.(models.Task)
+		return &task, nil
 	}
 }
 
-func (s *Storage) AddLinks(ctx context.Context, links []string, id uuid.UUID) (int, error) {
+func (s *Storage) AddLinks(ctx context.Context, links []string, id string) (int, error) {
 	select {
 	default:
 	case <-ctx.Done():
@@ -135,13 +134,13 @@ func (s *Storage) AddLinks(ctx context.Context, links []string, id uuid.UUID) (i
 		if len(links) > delta {
 			task.Links = append(task.Links, links[:delta]...)
 			s.logger.Infof("AddLinks: Added %v link(s)", delta)
-			s.db[task.TaskId.String()] = *task
+			s.db.Store(task.TaskId.String(), *task)
 			doneCh <- valueErr{v: delta, err: nil}
 			return
 		}
 		task.Links = append(task.Links, links...)
 		s.logger.Infof("AddLinks: Added %v link(s)", len(links))
-		s.db[task.TaskId.String()] = *task
+		s.db.Store(task.TaskId.String(), *task)
 		doneCh <- valueErr{v: len(links), err: nil}
 	}()
 

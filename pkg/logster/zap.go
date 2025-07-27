@@ -74,7 +74,7 @@ func New(w zapcore.WriteSyncer, cfg Config) *ZapAdapter {
 	var enc zapcore.Encoder
 
 	encoderCfg = zap.NewProductionEncoderConfig()
-	encoderCfg.EncodeLevel = zapcore.CapitalColorLevelEncoder
+
 	encoderCfg.EncodeTime = func(time time.Time, enc zapcore.PrimitiveArrayEncoder) {
 		enc.AppendString(time.UTC().Format("2006-01-02T15:04:05.999Z07:00"))
 	}
@@ -82,6 +82,7 @@ func New(w zapcore.WriteSyncer, cfg Config) *ZapAdapter {
 	case "json":
 		enc = zapcore.NewJSONEncoder(encoderCfg)
 	case "console":
+		encoderCfg.EncodeLevel = zapcore.CapitalColorLevelEncoder
 		enc = zapcore.NewConsoleEncoder(encoderCfg)
 	default:
 		enc = zapcore.NewConsoleEncoder(encoderCfg)

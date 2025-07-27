@@ -7,6 +7,9 @@ import (
 	"os"
 
 	"github.com/JonnyShabli/23.07.2025/config"
+	"github.com/JonnyShabli/23.07.2025/internal/Service"
+	"github.com/JonnyShabli/23.07.2025/internal/controller"
+	"github.com/JonnyShabli/23.07.2025/internal/repository"
 	sig "github.com/JonnyShabli/23.07.2025/pkg"
 	pkghttp "github.com/JonnyShabli/23.07.2025/pkg/http"
 	"github.com/JonnyShabli/23.07.2025/pkg/logster"
@@ -45,9 +48,13 @@ func main() {
 		return sig.ListenSignal(ctx, logger)
 	})
 
+	repo := repository.NewStorage(logger)
+	service := Service.NewZipper(repo, logger)
+	handlerObj := controller.NewHandlers(service, logger)
+
 	// создаем хэндлер
-	handler := pkghttp.NewHandler("/", pkghttp.WithLogger(logger), pkghttp.DefaultTechOptions())
-	logger.Infof("create and configure handler")
+	handler := pkghttp.NewHandler("/", pkghttp.WithLogger(logger), pkghttp.DefaultTechOptions(), controller.WithApiHandler(handlerObj))
+	logger.Infof("Create and configure handler")
 
 	// запускаем http server
 	g.Go(func() error {
