@@ -36,7 +36,7 @@ func NewServer(addr string, logger logster.Logger, handler http.Handler) *http.S
 	return &http.Server{
 		Addr:              addr,
 		Handler:           handler,
-		ErrorLog:          log.New(logger, "", 0),
+		ErrorLog:          log.New(logger, "http_", 0),
 		ReadHeaderTimeout: defaultReadHeaderTimeout,
 	}
 }

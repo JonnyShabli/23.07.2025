@@ -32,3 +32,9 @@ type AddLinksRequest struct {
 	TaskId uuid.UUID `json:"task_id"`
 	Links  []string  `json:"links"`
 }
+
+type Job struct {
+	Id        string      `json:"id"`
+	Data      interface{} `json:"data"`
+	JobStatus string      `json:"status"`
+}
