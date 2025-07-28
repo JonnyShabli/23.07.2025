@@ -19,11 +19,11 @@ type HandlerInterface interface {
 }
 
 type HandlerObj struct {
-	Service Service.ZipperInterface
+	Service Service.ServiceInterface
 	Logger  logster.Logger
 }
 
-func NewHandlers(service Service.ZipperInterface, logger logster.Logger) *HandlerObj {
+func NewHandlers(service Service.ServiceInterface, logger logster.Logger) *HandlerObj {
 	return &HandlerObj{
 		Service: service,
 		Logger:  logger.WithField("Layer", "Handlers"),

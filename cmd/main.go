@@ -13,6 +13,7 @@ import (
 	sig "github.com/JonnyShabli/23.07.2025/pkg"
 	pkghttp "github.com/JonnyShabli/23.07.2025/pkg/http"
 	"github.com/JonnyShabli/23.07.2025/pkg/logster"
+	"github.com/JonnyShabli/23.07.2025/pkg/workerpool"
 	"github.com/joho/godotenv"
 	"golang.org/x/sync/errgroup"
 )
@@ -48,8 +49,15 @@ func main() {
 		return sig.ListenSignal(ctx, logger)
 	})
 
+	// создаем pool для скачивания файлов
+	downloaderPool := workerpool.NewWorkerPool(appConfig.NumWorkers, logger, "downloder")
+
+	// создаем pool для архивирования файлов
+	zipperPool := workerpool.NewWorkerPool(appConfig.NumWorkers, logger, "zipper")
+
+	// создаем зависимости
 	repo := repository.NewStorage(logger)
-	service := Service.NewZipper(repo, logger)
+	service := Service.NewServiceObj(repo, logger, appConfig.AllowedTypes, downloaderPool, zipperPool)
 	handlerObj := controller.NewHandlers(service, logger)
 
 	// создаем хэндлер

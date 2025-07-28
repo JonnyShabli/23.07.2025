@@ -8,4 +8,6 @@ logger:
   format: "console"
   level: "info"
 
+allowedTypes: [application/pdf, image/jpeg]
+numWorkers: 3
 

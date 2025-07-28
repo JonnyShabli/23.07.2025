@@ -11,6 +11,8 @@ import (
 type Config struct {
 	pkghttp.HTTPClient `yaml:"httpClient"`
 	Logger             logster.Config `yaml:"logger"`
+	AllowedTypes       []string       `yaml:"allowedTypes"`
+	NumWorkers         int            `yaml:"numWorkers"`
 }
 
 func LoadConfig(filename string, cfg interface{}) error {

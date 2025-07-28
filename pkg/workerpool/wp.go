@@ -11,23 +11,26 @@ import (
 
 type WorkerPoolInterface interface {
 	Start(ctx context.Context)
-	AddJob(data interface{})
+	AddJob(data models.Job)
 }
 
 type WorkerPool struct {
+	name       string
 	numWorkers int
-	in         chan models.Job
-	out        chan models.Job
+	In         chan models.Job
+	Out        chan models.Job
 	wg         *sync.WaitGroup
 	logger     logster.Logger
 	f          func(models.Job) models.Job
 }
 
-func NewWorkerPool(numWorkers int, logger logster.Logger) *WorkerPool {
+func NewWorkerPool(numWorkers int, logger logster.Logger, name string) *WorkerPool {
+	logger.Infof("%s pool created", name)
 	return &WorkerPool{
+		name:       name,
 		numWorkers: numWorkers,
-		in:         make(chan models.Job),
-		out:        make(chan models.Job),
+		In:         make(chan models.Job),
+		Out:        make(chan models.Job),
 		wg:         &sync.WaitGroup{},
 		logger:     logger,
 	}
@@ -56,20 +59,20 @@ func (wp *WorkerPool) processData(ctx context.Context, job models.Job) (models.J
 }
 
 func (wp *WorkerPool) AddJob(data models.Job) {
-	wp.in <- data
+	wp.In <- data
 	wp.logger.Infof("Job added")
 }
 
-func (wp *WorkerPool) Start(ctx context.Context, name string) {
+func (wp *WorkerPool) Start(ctx context.Context) {
 	wg := &sync.WaitGroup{}
-	wp.logger.Infof("Starting %s worker pool", name)
+	wp.logger.Infof("Starting %s worker pool", wp.name)
 	for range wp.numWorkers {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			for {
 				select {
-				case v, ok := <-wp.in:
+				case v, ok := <-wp.In:
 					if !ok {
 						wp.logger.Infof("incoming channel closed")
 						return
@@ -79,7 +82,7 @@ func (wp *WorkerPool) Start(ctx context.Context, name string) {
 						return
 					}
 					select {
-					case wp.out <- val:
+					case wp.Out <- val:
 					case <-ctx.Done():
 						return
 					}
@@ -92,7 +95,7 @@ func (wp *WorkerPool) Start(ctx context.Context, name string) {
 
 	go func() {
 		wg.Wait()
-		wp.logger.Infof("Stopping %s worker pool", name)
-		close(wp.out)
+		wp.logger.Infof("Stopping %s worker pool", wp.name)
+		close(wp.Out)
 	}()
 }
