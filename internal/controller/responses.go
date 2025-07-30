@@ -8,11 +8,12 @@ import (
 )
 
 type Response struct {
-	Msg  string      `json:"msg"`
-	Data interface{} `json:"data"`
+	StatusCode int         `json:"status_code"`
+	Msg        string      `json:"msg"`
+	Data       interface{} `json:"data"`
 }
 
-func SuccessResponse(w http.ResponseWriter, log logster.Logger, msg string, data interface{}) {
+func SuccessDataResponse(w http.ResponseWriter, log logster.Logger, msg string, data interface{}) {
 	w.Header().Set("Content-Type", "application/json;charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	if data == nil {

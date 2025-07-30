@@ -1,0 +1,19 @@
+http_server:
+  timeout: 1s
+  addr: "localhost"
+  port: "8080"
+
+logger:
+  project: "23.07.2025"
+  format: "console"
+  level: "info"
+
+worker_pool:
+  num_workers: 3
+  timeout: 30s
+  allowed_types: [application/pdf, image/jpeg]
+  max_file_size: 10485760 # 10 Mb
+
+zipper:
+  archive_path: "./tmp/archives/"
+  max_files: 3

@@ -1,9 +1,5 @@
 package models
 
-import (
-	"github.com/google/uuid"
-)
-
 const (
 	StatusIdle       = "Idle"
 	StatusProcessing = "Processing"
@@ -11,30 +7,43 @@ const (
 )
 
 type Task struct {
-	TaskId     uuid.UUID `json:"task_id"`
-	Links      []string  `json:"links"`
-	LinksDone  []string  `json:"links_done"`
-	LinksError []string  `json:"links_error"`
-	Count      int       `json:"count"`
-	Status     string    `json:"status"`
-	Zip        *[]byte   `json:"zip"`
+	TaskId        string            `json:"task_id"`
+	Links         []string          `json:"links,omitempty"`
+	LinksStatuses map[string]string `json:"links_statuses,omitempty"`
+	LinksError    map[string]string `json:"links_error,omitempty"`
+	Status        string            `json:"status"`
+	ZipPath       string            `json:"zip_path,omitempty"`
 }
 
 type Status struct {
-	TaskId     uuid.UUID `json:"task_id"`
-	Status     string    `json:"status"`
-	LinksDone  []string  `json:"links_done"`
-	LinksError []string  `json:"links_error"`
-	Zip        *[]byte   `json:"zip"`
+	TaskId        string            `json:"task_id"`
+	Status        string            `json:"status"`
+	LinksStatuses map[string]string `json:"links_statuses,omitempty"`
+	LinksError    map[string]string `json:"links_error,omitempty"`
+	ZipPath       string            `json:"url,omitempty"`
 }
 
 type AddLinksRequest struct {
-	TaskId uuid.UUID `json:"task_id"`
-	Links  []string  `json:"links"`
+	TaskId string   `json:"task_id"`
+	Links  []string `json:"links"`
 }
 
-type Job struct {
-	Id        string      `json:"id"`
-	Data      interface{} `json:"data"`
-	JobStatus string      `json:"status"`
+type DownloadJob struct {
+	TaskId string `json:"task_id"`
+	Url    string `json:"url"`
+	Err    error  `json:"error,omitempty"`
+}
+
+type ZipJob struct {
+	TaskId         string  `json:"task_id"`
+	Url            string  `json:"url"`
+	Data           *[]byte `json:"data"`
+	ResponseStatus string  `json:"response_status"`
+	FileName       string  `json:"file_name"`
+	Err            error   `json:"error"`
+}
+
+type ValueAndError struct {
+	Value interface{}
+	Err   error
 }

@@ -13,5 +13,8 @@ func WithApiHandler(api HandlerInterface) pkghttp.RouterOption {
 			r.Get("/status/{task_id}", api.GetStatus)
 
 		})
+		r.Route("/", func(r chi.Router) {
+			r.Get("/download/*", api.DownloadZip)
+		})
 	}
 }

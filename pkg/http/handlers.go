@@ -16,7 +16,7 @@ const (
 	shutdownTimeout          = 5 * time.Second
 )
 
-type HTTPClient struct {
+type HTTPServer struct {
 	Timeout time.Duration `yaml:"timeout"`
 	Addr    string        `yaml:"addr"`
 	Port    string        `yaml:"port"`

@@ -12,7 +12,7 @@ import (
 
 var ErrSignalReceived = errors.New("operating system signal")
 
-func ListenSignal(ctx context.Context, logger logster.Logger) error {
+func ListenSignal(ctx context.Context, logger logster.Logger, cancel context.CancelFunc) error {
 	sigquit := make(chan os.Signal, 1)
 	signal.Ignore(syscall.SIGHUP, syscall.SIGPIPE)
 	signal.Notify(sigquit, syscall.SIGINT, syscall.SIGTERM)
@@ -20,6 +20,7 @@ func ListenSignal(ctx context.Context, logger logster.Logger) error {
 	case <-ctx.Done():
 		return nil
 	case sig := <-sigquit:
+		cancel()
 		logger.WithField("signal", sig).Infof("Captured signal")
 		logger.Infof("Gracefully shutting down server...")
 		return ErrSignalReceived
